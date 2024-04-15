@@ -3,7 +3,8 @@
 
 
 import torch
-from torch.nn import functional as F
+import torch.nn.functional
+import torch.distributed
 from scipy.optimize import linear_sum_assignment
 
 from ..ddp_utils import is_dist_avail_and_initialized, get_world_size
@@ -12,6 +13,7 @@ from ._utils import WeightedLoss
 from .hungarian_loss import HungarianLoss
 from .builder import LOSSES
 
+# 匈牙利算法
 
 # TODO: Speed-up Hungarian on GPU with tensors
 class _HungarianMatcher(torch.nn.Module):
@@ -22,9 +24,19 @@ class _HungarianMatcher(torch.nn.Module):
     while the others are un-matched (and thus treated as non-objects).
     POTO matching, which maximizes the cost matrix.
     """
+    """这个类计算网络目标和预测之间的分配关系。
+
+    出于效率的考虑，目标不包括无对象。因此，一般来说，预测的数量会比目标多。在这种情况下，我们对最佳的预测进行一对一的匹配，而其他的则未匹配（因此被视为非对象）。
+    使用POTO匹配方法，该方法最大化成本矩阵。
+    """
 
     def __init__(self, alpha=0.8, bezier_order=3, num_sample_points=100, k=7):
         super().__init__()
+        # alpha: 一个浮点数，默认值为0.8。
+        # bezier_order: 贝塞尔曲线的阶数，默认值为3。
+        # num_sample_points: 采样点的数量，默认值为100。
+        # k: 一个整数，控制某些操作的参数，默认值为7。
+        # bezier_sampler: 一个BezierSampler对象，用于贝塞尔曲线的采样，在贝塞尔曲线上生成均匀的采样点
         self.k = k
         self.alpha = alpha
         self.num_sample_points = num_sample_points
@@ -35,16 +47,25 @@ class _HungarianMatcher(torch.nn.Module):
         # Compute the matrices for an entire batch (computation is all pairs, in a way includes the real loss function)
         # targets: each target: ['keypoints': L x N x 2]
         # B: batch size; Q: max lanes per-pred, G: total num ground-truth-lanes
+        # targets: 每个目标都有一个 'keypoints' 键，对应一个形状为 L x N x 2 的数组。这里，L 表示每个目标的车道数，N 表示每条车道的关键点数，2 表示 (x, y) 坐标。
+        # B: 批次大小，表示一个批次中的样本数。
+        # Q: 每个预测的最大车道数。
+        # G: 总的地面实况车道数。
         B, Q = outputs["logits"].shape
         target_keypoints = torch.cat([i['keypoints'] for i in targets], dim=0)  # G x N x 2
         target_sample_points = torch.cat([i['sample_points'] for i in targets], dim=0)  # G x num_sample_points x 2
 
         # Valid bezier segments
+        # 对目标关键点target_keypoints进行分段处理，使其成为有效的贝塞尔曲线段
+        # 获取采样点
         target_keypoints = cubic_bezier_curve_segment(target_keypoints, target_sample_points)
         target_sample_points = self.bezier_sampler.get_sample_points(target_keypoints)
 
         # target_valid_points = get_valid_points(target_sample_points)  # G x num_sample_points
+        # 获取目标关键点target_keypoints的形状，其中G表示总的车道数，N表示每条车道的关键点数
         G, N = target_keypoints.shape[:2]
+        # 对网络的输出logits进行sigmoid激活，得到每个车道存在的概率
+        # 其中B是批次大小，Q是每个样本的最大车道数
         out_prob = outputs["logits"].sigmoid()  # B x Q
         out_lane = outputs['curves']  # B x Q x N x 2
         sizes = [target['keypoints'].shape[0] for target in targets]
@@ -159,7 +180,7 @@ class HungarianBezierLoss(WeightedLoss):
         # valid points: L x N
         if targets.numel() == 0:
             targets = inputs.clone().detach()
-        loss = F.l1_loss(inputs, targets, reduction='none')
+        loss = torch.nn.functional.l1_loss(inputs, targets, reduction='none')
         if valid_points is not None:
             loss *= valid_points.unsqueeze(-1)
             normalizer = valid_points.sum()
@@ -181,7 +202,7 @@ class HungarianBezierLoss(WeightedLoss):
         # No need for permutation, assume target is matched to inputs
 
         # Negative weight as positive weight
-        return F.binary_cross_entropy_with_logits(inputs.unsqueeze(1), targets.unsqueeze(1), pos_weight=self.pos_weight,
+        return torch.nn.functional.binary_cross_entropy_with_logits(inputs.unsqueeze(1), targets.unsqueeze(1), pos_weight=self.pos_weight,
                                                   reduction=self.reduction) / self.pos_weight
 
     def binary_seg_loss(self, inputs, targets):
@@ -198,7 +219,7 @@ class HungarianBezierLoss(WeightedLoss):
         targets = targets.float()
 
         # Negative weight as positive weight
-        loss = F.binary_cross_entropy_with_logits(inputs, targets, pos_weight=self.pos_weight_seg,
+        loss = torch.nn.functional.binary_cross_entropy_with_logits(inputs, targets, pos_weight=self.pos_weight_seg,
                                                   reduction='none') / self.pos_weight_seg
         loss *= valid_map
 

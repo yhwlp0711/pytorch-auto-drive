@@ -14,7 +14,7 @@ with import_from('./'):
 train = dict(
     exp_name='resnet18_bezierlanenet_tusimple-aug2',
     workers=8,
-    batch_size=20,
+    batch_size=8,
     checkpoint=None,
     # Device args
     world_size=0,

@@ -14,6 +14,7 @@ from utils.runners import LaneDetTrainer, LaneDetTester
 
 if __name__ == '__main__':
     # ulimit
+    # 获取和设置文件描述符限制
     try:
         import resource
         rlimit = resource.getrlimit(resource.RLIMIT_NOFILE)
@@ -33,7 +34,7 @@ if __name__ == '__main__':
     add_shortcuts(parser)
 
     # Required args
-    parser.add_argument('--config', type=str, help='Path to config file', required=True)
+    parser.add_argument('--config', default="E:/biyesheji/code3/pytorch-auto-drive/configs/lane_detection/bezierlanenet/resnet18_tusimple_aug1b.py", type=str, help='Path to config file')
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument('--train', action='store_true')
     group.add_argument('--test', action='store_true')
