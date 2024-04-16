@@ -130,6 +130,12 @@ class TuSimpleAsBezier(_BezierLaneDataset):
     ]
 
     def init_dataset(self, root):
+        # 设置图像的目录路径。这里，root是数据集的根目录，而图像存放在clips子目录下。
+        # 设置Bezier标签的目录路径。Bezier标签通常包含贝塞尔曲线的控制点信息。
+        # 设置分割掩码的目录路径。这些掩码通常用于标记图像中的特定区域或物体。
+        # 设置输出文件名的前缀。在这里，输出文件的前缀与图像文件夹的名称相同。
+        # 设置输出文件的后缀。这里，输出文件的后缀是.jpg，意味着输出的图像文件将以JPEG格式保存。
+        # 设置图像文件的后缀。与输出文件的后缀相同，表示TuSimple数据集中的图像都是以JPEG格式存储的。
         self.image_dir = os.path.join(root, 'clips')
         self.bezier_labels_dir = os.path.join(root, 'bezier_labels')
         self.mask_dir = os.path.join(root, 'segGT6')
