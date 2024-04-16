@@ -168,6 +168,14 @@ class HungarianBezierLoss(WeightedLoss):
             # Match
             # 通过匈牙利匹配器matcher进行预测与目标的匹配
             indices = self.matcher(outputs=outputs, targets=targets)
+            # @staticmethod
+            # def get_src_permutation_idx(indices):
+            #     # Permute predictions following indices
+            #     # 2-dim indices: (dim0 indices, dim1 indices)
+            #     batch_idx = torch.cat([torch.full_like(src, i) for i, (src, _) in enumerate(indices)])
+            #     image_idx = torch.cat([src for (src, _) in indices])
+
+            #     return batch_idx, image_idx
             idx = HungarianLoss.get_src_permutation_idx(indices)
             output_curves = output_curves[idx]
 
