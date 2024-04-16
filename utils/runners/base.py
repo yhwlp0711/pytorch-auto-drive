@@ -42,12 +42,14 @@ class BaseRunner(ABC):
     def __init__(self, cfg):
         if torch.backends.cudnn.version() < 8000:
             torch.backends.cudnn.benchmark = True
+        # 它使用配置字典中的'model'部分来创建模型
         self.model = MODELS.from_dict(cfg['model'])
 
     @abstractmethod
     def run(self, *args, **kwargs):
         pass
 
+    # 用于清理和整理训练或评估过程中的资源
     def clean(self, *args, **kwargs):
         # Cleanups and a hook for after-run messages/ops
         if hasattr(self, '_cfg') and 'exp_dir' in self._cfg.keys():
@@ -56,6 +58,7 @@ class BaseRunner(ABC):
                 os.path.join(self._cfg['save_dir'], 'tb_logs', self._cfg['exp_name'])
             ))
 
+    # 这个方法的目的是确定可用的设备（CPU或CUDA）并将模型移动到该设备上
     def get_device_and_move_model(self, *args, **kwargs):
         device = torch.device('cpu')
         if torch.cuda.is_available():
@@ -65,11 +68,13 @@ class BaseRunner(ABC):
 
         return device
 
+    # 从一个检查点文件中加载模型的权重
     def load_checkpoint(self, ckpt_filename):
         # [Possible BC-Break] Get rid of scheduler and optimizer loading
         if ckpt_filename is not None:
             load_checkpoint(net=self.model, lr_scheduler=None, optimizer=None, filename=ckpt_filename)
 
+    # 用于从给定的数据集中获取统计信息，并将这些统计信息添加到配置 (_cfg) 中
     def get_dataset_statics(self, dataset, map_dataset_statics, exist_ok=False):
         assert hasattr(self, '_cfg')
         if map_dataset_statics is not None:
@@ -83,6 +88,7 @@ class BaseRunner(ABC):
                     attr = getattr(dataset, k)
                 self._cfg[k] = attr
 
+    # 用于初始化实验目录和保存配置文件
     def init_exp_dir(self, cfg, cfg_prefix=None):
         # Init work directory and save parsed configs for reference
         assert hasattr(self, '_cfg')
@@ -92,6 +98,7 @@ class BaseRunner(ABC):
         with open(os.path.join(exp_dir, cfg_prefix + '_cfg.json'), 'w') as f:
             f.write(json.dumps(cfg, indent=4))
 
+    # 用于更新配置字典 cfg
     @staticmethod
     def update_cfg(cfg, updates):
         # Update by argparse object/dict
@@ -99,6 +106,7 @@ class BaseRunner(ABC):
             updates = vars(updates)
         return cfg.update(updates)
 
+    # 用于多进程环境中安全地写入日志
     @staticmethod
     def write_mp_log(log_file, content, append=True):
         # Multi-processing log writing
@@ -111,6 +119,7 @@ class BaseRunner(ABC):
 
 
 class BaseTrainer(BaseRunner):
+    # 它主要的目的是准备数据、模型、优化器、损失函数等，为训练过程提供必要的环境和工具
     def __init__(self, cfg, map_dataset_statics=None):
         super().__init__(cfg)
         self._cfg = cfg['train']
@@ -153,6 +162,8 @@ class BaseTrainer(BaseRunner):
         self.criterion = LOSSES.from_dict(cfg['loss'])
 
     def get_device_and_move_model(self):
+        # 准备模型并将其移动到适当的设备，同时还考虑了是否在分布式环境中训练。
+        # 这是一个关键的步骤，因为它为后续的训练过程提供了必要的设备和模型配置
         init_distributed_mode(self._cfg)
         device = torch.device(self._cfg['device'])
         print(device)

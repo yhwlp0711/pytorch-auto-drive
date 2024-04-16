@@ -58,6 +58,7 @@ def reduce_dict(input_dict, average=True, to_item=True):
     have the averaged results. Returns a dict with the same fields as
     input_dict, after reduction.
     """
+    # 主要用于在多个进程或多个 GPU 之间同步和合并数据
     world_size = get_world_size()
     if world_size < 2:
         return input_dict
