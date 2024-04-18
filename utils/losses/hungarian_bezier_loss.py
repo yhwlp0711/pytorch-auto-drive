@@ -47,7 +47,8 @@ class _HungarianMatcher(torch.nn.Module):
         # Compute the matrices for an entire batch (computation is all pairs, in a way includes the real loss function)
         # targets: each target: ['keypoints': L x N x 2]
         # B: batch size; Q: max lanes per-pred, G: total num ground-truth-lanes
-        # targets: 每个目标都有一个 'keypoints' 键，对应一个形状为 L x N x 2 的数组。这里，L 表示每个目标的车道数，N 表示每条车道的关键点数，2 表示 (x, y) 坐标。
+        # targets: 每个目标都有一个 'keypoints' 键，对应一个形状为 L x N x 2 的数组。
+        # 这里，L 表示每个目标的车道数，N 表示每条车道的关键点数，2 表示 (x, y) 坐标。
         # B: 批次大小，表示一个批次中的样本数。
         # Q: 每个预测的最大车道数。
         # G: 总的地面实况车道数。

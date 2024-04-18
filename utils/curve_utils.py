@@ -160,14 +160,20 @@ class BezierSampler(torch.nn.Module):
         self.num_control_points = order + 1
         self.num_sample_points = num_sample_points
         self.control_points = []
-        self.bezier_coeff = self.get_bezier_coefficient()
+        # self.bezier_coeff = self.get_bezier_coefficient()
         self.bernstein_matrix = self.get_bernstein_matrix()
 
-    def get_bezier_coefficient(self):
-        Mtk = lambda n, t, k: t ** k * (1 - t) ** (n - k) * n_over_k(n, k)
-        BezierCoeff = lambda ts: [[Mtk(self.num_control_points - 1, t, k) for k in range(self.num_control_points)] for t
+    def Mtk(self, n, t, k):
+        return t ** k * (1 - t) ** (n - k) * n_over_k(n, k)
+
+    def bezier_coeff(self, ts):
+        return  [[self.Mtk(self.num_control_points - 1, t, k) for k in range(self.num_control_points)] for t
                                   in ts]
-        return BezierCoeff
+
+    # def get_bezier_coefficient(self):
+    #     Mtk = lambda n, t, k: t ** k * (1 - t) ** (n - k) * n_over_k(n, k)
+    #     BezierCoeff = lambda ts: [[Mtk(self.num_control_points - 1, t, k) for k in range(self.num_control_points)] for t in ts]
+    #     return BezierCoeff
 
     def get_bernstein_matrix(self):
         t = torch.linspace(0, 1, self.num_sample_points)

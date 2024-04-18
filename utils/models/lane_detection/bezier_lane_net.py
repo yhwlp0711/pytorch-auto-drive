@@ -1,5 +1,7 @@
 import torch
 import torch.nn as nn
+from efficientnet_pytorch import EfficientNet
+
 if torch.__version__ >= '1.6.0':
     from torch.cuda.amp import autocast
 else:
@@ -7,6 +9,15 @@ else:
 
 from .bezier_base import BezierBaseNet
 from ..builder import MODELS
+
+# @MODELS.register()
+# class SimpleBezierLaneNet(BezierBaseNet):
+#     def __init__(self, backbone_cfg, num_outputs, thresh=0.5, local_maximum_window_size=9):
+#         super(SimpleBezierLaneNet, self).__init__(thresh, local_maximum_window_size)
+#
+#         self.backbone = MODELS.from_dict(backbone_cfg)
+#         self.model = EfficientNet.from_pretrained(self.backbone, num_classes=num_outputs)
+
 
 
 @MODELS.register()
@@ -28,6 +39,7 @@ class BezierLaneNet(BezierBaseNet):
         branch_channels = 256
 
         self.backbone = MODELS.from_dict(backbone_cfg)
+        # self.backbone = EfficientNet.from_pretrained("efficientnet-b0")
         self.reducer = MODELS.from_dict(reducer_cfg)
         self.dilated_blocks = MODELS.from_dict(dilated_blocks_cfg)
         self.simple_flip_2d = MODELS.from_dict(feature_fusion_cfg)  # Name kept for legacy weights

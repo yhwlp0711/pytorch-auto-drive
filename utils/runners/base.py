@@ -3,6 +3,8 @@
 # args: command line args from argparse
 import os
 import torch
+import torch.backends.cudnn
+import torch.utils.data
 import cv2
 from torch.utils.tensorboard import SummaryWriter
 from abc import ABC, abstractmethod
