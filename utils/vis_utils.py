@@ -25,6 +25,7 @@ def save_images(images, filenames):
     assert images.shape[0] == len(filenames)
     if type(images) != np.ndarray:  # Flexible
         images = tensor_image_to_numpy(images)
+        images = np.squeeze(images)
     for i in range(len(filenames)):
         Image.fromarray(images[i]).save(filenames[i])
 

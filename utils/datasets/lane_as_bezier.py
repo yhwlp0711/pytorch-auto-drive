@@ -16,6 +16,12 @@ class _BezierLaneDataset(torchvision.datasets.VisionDataset):
     def __init__(self, root, image_set='train', transforms=None, transform=None, target_transform=None,
                  order=3, num_sample_points=100, aux_segmentation=False):
         super().__init__(root, transforms, transform, target_transform)
+        # root: 数据集的根目录。
+        # image_set: 指定数据集的子集，如 'train', 'val', 'test'。
+        # transforms, transform, target_transform: 数据集的图像和目标转换。
+        # order: 贝塞尔曲线的阶数。
+        # num_sample_points: 贝塞尔曲线上的采样点数量。
+        # aux_segmentation: 是否包含辅助的分割标注。
         self.aux_segmentation = aux_segmentation
         self.bezier_sampler = BezierSampler(order=order, num_sample_points=num_sample_points)
         if image_set == 'valfast':
@@ -42,6 +48,7 @@ class _BezierLaneDataset(torchvision.datasets.VisionDataset):
         raise NotImplementedError
 
     def __getitem__(self, index):
+        # 根据给定的索引获取图像和目标
         # Return x (input image) & y (mask image, i.e. pixel-wise supervision) & lane existence (a list),
         # if not just testing,
         # else just return input image.
@@ -68,6 +75,7 @@ class _BezierLaneDataset(torchvision.datasets.VisionDataset):
         return len(self.images)
 
     def loader_bezier(self):
+        # 加载贝塞尔标注的控制点
         results = []
         with open(self.bezier_labels, 'r') as f:
             results += [json.loads(x.strip()) for x in f.readlines()]
@@ -84,6 +92,8 @@ class _BezierLaneDataset(torchvision.datasets.VisionDataset):
 
     def _init_all(self):
         # Got the lists from 4 datasets to be in the same format
+        # 根据 image_set 和 test 属性初始化图像和目标的路径。
+        # 加载图像和标注的列表文件
         data_list = 'train.txt' if self.image_set == 'val_train' else self.image_set + '.txt'
         split_f = os.path.join(self.splits_dir, data_list)
         with open(split_f, "r") as f:
@@ -105,6 +115,9 @@ class _BezierLaneDataset(torchvision.datasets.VisionDataset):
 
     def _post_process(self, target, ignore_seg_index=255):
         # Get sample points and delete invalid lines (< 2 points)
+        # 后处理方法，对目标进行一些额外的处理。
+        # 对于车道的关键点，获取样本点并删除无效的车道。
+        # 对于分割掩码，将其映射为二进制（0、1、255）
         if target['keypoints'].numel() != 0:  # No-lane cases can be handled in loss computation
             sample_points = self.bezier_sampler.get_sample_points(target['keypoints'])
             valid_lanes = get_valid_points(sample_points).sum(dim=-1) >= 2

@@ -6,6 +6,8 @@ try:
 except ImportError:
     import json
 
+#  scikit-learn 1.4.1.post1
+# numpy 1.25.0
 
 class LaneEval(object):
     lr = LinearRegression()
@@ -58,6 +60,7 @@ class LaneEval(object):
 
     @staticmethod
     def bench_one_submit(pred_file, gt_file):
+        # print(pred_file)
         try:
             json_pred = [json.loads(line) for line in open(pred_file).readlines()]
         except BaseException as e:
@@ -71,6 +74,7 @@ class LaneEval(object):
             if 'raw_file' not in pred or 'lanes' not in pred or 'run_time' not in pred:
                 raise Exception('raw_file or lanes or run_time not in some predictions.')
             raw_file = pred['raw_file']
+            raw_file = raw_file.replace('\\', '/')
             pred_lanes = pred['lanes']
             run_time = pred['run_time']
             if raw_file not in gts:
@@ -137,10 +141,10 @@ if __name__ == '__main__':
         print(results)
         acc = json.loads(results)[0]['value']
         with open('../../log.txt', 'a') as f:
-            fcntl.flock(f, fcntl.LOCK_EX)
+            # fcntl.flock(f, fcntl.LOCK_EX)
             f.write(sys.argv[3] + ': ' + str(acc) + '\n')
-            fcntl.flock(f, fcntl.LOCK_UN)
-        with open('./output/' + sys.argv[3] + '.json', 'w') as f:
+            # fcntl.flock(f, fcntl.LOCK_UN)
+        with open('../../output/' + sys.argv[3] + '.json', 'w') as f:
             f.write(results)
         if len(sys.argv) >= 5:
             gt_file = os.path.split(sys.argv[2])[1]

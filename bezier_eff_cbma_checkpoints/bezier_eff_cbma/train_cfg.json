@@ -1,0 +1,238 @@
+{
+    "dataset": {
+        "name": "TuSimpleAsBezier",
+        "image_set": "train",
+        "root": "..\/dataset\/TUSimple",
+        "order": 3,
+        "aux_segmentation": true
+    },
+    "train_augmentation": {
+        "name": "Compose",
+        "transforms": [
+            {
+                "name": "RandomAffine",
+                "degrees": [
+                    -10,
+                    10
+                ],
+                "scale": [
+                    0.8,
+                    1.2
+                ],
+                "translate": [
+                    50,
+                    20
+                ],
+                "ignore_x": null
+            },
+            {
+                "name": "RandomHorizontalFlip",
+                "flip_prob": 0.5,
+                "ignore_x": null
+            },
+            {
+                "name": "Resize",
+                "size_image": [
+                    360,
+                    640
+                ],
+                "size_label": [
+                    360,
+                    640
+                ],
+                "ignore_x": null
+            },
+            {
+                "name": "ColorJitter",
+                "brightness": 0.3,
+                "contrast": 0.3,
+                "saturation": 0.3,
+                "hue": 0.15
+            },
+            {
+                "name": "ToTensor"
+            },
+            {
+                "name": "Normalize",
+                "mean": [
+                    0.485,
+                    0.456,
+                    0.406
+                ],
+                "std": [
+                    0.229,
+                    0.224,
+                    0.225
+                ],
+                "normalize_target": true,
+                "ignore_x": null
+            }
+        ]
+    },
+    "test_augmentation": {
+        "name": "Compose",
+        "transforms": [
+            {
+                "name": "Resize",
+                "size_image": [
+                    360,
+                    640
+                ],
+                "size_label": [
+                    360,
+                    640
+                ]
+            },
+            {
+                "name": "ToTensor"
+            },
+            {
+                "name": "Normalize",
+                "mean": [
+                    0.485,
+                    0.456,
+                    0.406
+                ],
+                "std": [
+                    0.229,
+                    0.224,
+                    0.225
+                ]
+            }
+        ]
+    },
+    "loss": {
+        "name": "HungarianBezierLoss",
+        "weight": [
+            0.4,
+            1
+        ],
+        "weight_seg": [
+            0.4,
+            1
+        ],
+        "curve_weight": 1,
+        "label_weight": 0.1,
+        "seg_weight": 0.75,
+        "alpha": 0.8,
+        "num_sample_points": 100,
+        "bezier_order": 3,
+        "k": 9,
+        "reduction": "mean",
+        "ignore_index": 255
+    },
+    "optimizer": {
+        "name": "torch_optimizer",
+        "torch_optim_class": "Adam",
+        "lr": 0.0006,
+        "parameters": [
+            {
+                "params": "conv_offset",
+                "lr": 5.9999999999999995e-5
+            },
+            {
+                "params": "__others__"
+            }
+        ]
+    },
+    "lr_scheduler": {
+        "name": "CosineAnnealingLRWrapper",
+        "epochs": 400
+    },
+    "train": {
+        "exp_name": "bezier_eff_cbma",
+        "workers": 10,
+        "batch_size": 16,
+        "checkpoint": null,
+        "world_size": 0,
+        "dist_url": "env:\/\/",
+        "device": "cuda:0",
+        "val_num_steps": 0,
+        "save_dir": ".\/bezier_eff_cbma_checkpoints",
+        "seg": false,
+        "input_size": [
+            360,
+            640
+        ],
+        "original_size": [
+            720,
+            1280
+        ],
+        "num_classes": null,
+        "num_epochs": 300,
+        "collate_fn": "dict_collate_fn",
+        "state": 0,
+        "mixed_precision": false,
+        "distributed": false,
+        "validation": false,
+        "exp_dir": ".\/bezier_eff_cbma_checkpoints\/bezier_eff_cbma"
+    },
+    "test": {
+        "exp_name": "bezier_eff_cbma",
+        "workers": 0,
+        "batch_size": 1,
+        "checkpoint": ".\/bezier_eff_cbma_checkpoints\/model.pt",
+        "device": "cuda",
+        "save_dir": ".\/bezier_eff_cbma_checkpoints",
+        "seg": false,
+        "gap": 10,
+        "ppl": 56,
+        "thresh": null,
+        "collate_fn": "dict_collate_fn",
+        "input_size": [
+            360,
+            640
+        ],
+        "original_size": [
+            720,
+            1280
+        ],
+        "max_lane": 5,
+        "dataset_name": "tusimple"
+    },
+    "model": {
+        "name": "BezierLaneNet",
+        "image_height": 360,
+        "num_regression_parameters": 8,
+        "thresh": 0.5,
+        "local_maximum_window_size": 9,
+        "backbone_cfg": {
+            "name": "predefined_resnet_backbone",
+            "backbone_name": "resnet18",
+            "return_layer": "layer3",
+            "pretrained": true,
+            "replace_stride_with_dilation": [
+                false,
+                false,
+                false
+            ]
+        },
+        "reducer_cfg": null,
+        "dilated_blocks_cfg": {
+            "name": "predefined_dilated_blocks",
+            "in_channels": 112,
+            "mid_channels": 28,
+            "dilations": [
+                4,
+                8
+            ]
+        },
+        "feature_fusion_cfg": {
+            "name": "FeatureFlipFusion",
+            "channels": 112
+        },
+        "head_cfg": {
+            "name": "ConvProjection_1D",
+            "num_layers": 2,
+            "in_channels": 112,
+            "bias": true,
+            "k": 3
+        },
+        "aux_seg_head_cfg": {
+            "name": "SimpleSegHead",
+            "in_channels": 256,
+            "mid_channels": 64,
+            "num_classes": 1
+        }
+    }
+}

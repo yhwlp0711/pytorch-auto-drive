@@ -3,6 +3,8 @@
 # args: command line args from argparse
 import os
 import torch
+import torch.backends.cudnn
+import torch.utils.data
 import cv2
 from torch.utils.tensorboard import SummaryWriter
 from abc import ABC, abstractmethod
@@ -160,6 +162,7 @@ class BaseTrainer(BaseRunner):
                                                     optimizer=self.optimizer,
                                                     len_loader=len(self.dataloader))
         self.criterion = LOSSES.from_dict(cfg['loss'])
+        self.a = 1
 
     def get_device_and_move_model(self):
         # 准备模型并将其移动到适当的设备，同时还考虑了是否在分布式环境中训练。

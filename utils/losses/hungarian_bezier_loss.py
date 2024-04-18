@@ -47,10 +47,11 @@ class _HungarianMatcher(torch.nn.Module):
         # Compute the matrices for an entire batch (computation is all pairs, in a way includes the real loss function)
         # targets: each target: ['keypoints': L x N x 2]
         # B: batch size; Q: max lanes per-pred, G: total num ground-truth-lanes
-        # targets: 每个目标都有一个 'keypoints' 键，对应一个形状为 L x N x 2 的数组。这里，L 表示每个目标的车道数，N 表示每条车道的关键点数，2 表示 (x, y) 坐标。
+        # targets: 每个目标都有一个 'keypoints' 键，对应一个形状为 L x N x 2 的数组。
+        # 这里，L 表示每个目标的车道数，N 表示每条车道的关键点数，2 表示 (x, y) 坐标。
         # B: 批次大小，表示一个批次中的样本数。
         # Q: 每个预测的最大车道数。
-        # G: 总的地面实况车道数。
+        # G: 总的地面真实车道数。
         B, Q = outputs["logits"].shape
         target_keypoints = torch.cat([i['keypoints'] for i in targets], dim=0)  # G x N x 2
         target_sample_points = torch.cat([i['sample_points'] for i in targets], dim=0)  # G x num_sample_points x 2
@@ -151,12 +152,14 @@ class HungarianBezierLoss(WeightedLoss):
 
     def forward(self, inputs, targets, net):
         # 通过网络net计算得到预测输出outputs，包括curves、logits和segmentations
+        # inputs : 图片
+        # targets : 贝塞尔曲线的控制点、采样点和图片的mask
         outputs = net(inputs)
         output_curves = outputs['curves']
         # target_labels: 初始化为与logits相同形状的全零张量。
         # target_segmentations: 从targets中提取segmentation_mask并堆叠为一个张量
         target_labels = torch.zeros_like(outputs['logits'])
-        target_segmentations = torch.stack([target['segmentation_mask'] for target in targets])
+        # target_segmentations = torch.stack([target['segmentation_mask'] for target in targets])
 
         total_targets = 0
         for i in targets:
@@ -205,12 +208,13 @@ class HungarianBezierLoss(WeightedLoss):
         loss_curve = self.point_loss(self.bezier_sampler.get_sample_points(output_curves),
                                      target_sample_points)
         loss_label = self.classification_loss(inputs=outputs['logits'], targets=target_labels)
-        loss_seg = self.binary_seg_loss(inputs=outputs['segmentations'], targets=target_segmentations)
+        # loss_seg = self.binary_seg_loss(inputs=outputs['segmentations'], targets=target_segmentations)
 
-        loss = self.label_weight * loss_label + self.curve_weight * loss_curve + self.seg_weight * loss_seg
+        # loss = self.label_weight * loss_label + self.curve_weight * loss_curve + self.seg_weight * loss_seg
+        loss = self.label_weight * loss_label + self.curve_weight * loss_curve
 
         return loss, {'training loss': loss, 'loss label': loss_label, 'loss curve': loss_curve,
-                      'loss seg': loss_seg,
+                      # 'loss seg': loss_seg,
                       'valid portion': target_valid_points.float().mean()}
 
     def point_loss(self, inputs, targets, valid_points=None):

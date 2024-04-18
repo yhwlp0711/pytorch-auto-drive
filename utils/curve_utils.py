@@ -160,14 +160,20 @@ class BezierSampler(torch.nn.Module):
         self.num_control_points = order + 1
         self.num_sample_points = num_sample_points
         self.control_points = []
-        self.bezier_coeff = self.get_bezier_coefficient()
+        # self.bezier_coeff = self.get_bezier_coefficient()
         self.bernstein_matrix = self.get_bernstein_matrix()
 
-    def get_bezier_coefficient(self):
-        Mtk = lambda n, t, k: t ** k * (1 - t) ** (n - k) * n_over_k(n, k)
-        BezierCoeff = lambda ts: [[Mtk(self.num_control_points - 1, t, k) for k in range(self.num_control_points)] for t
+    def Mtk(self, n, t, k):
+        return t ** k * (1 - t) ** (n - k) * n_over_k(n, k)
+
+    def bezier_coeff(self, ts):
+        return  [[self.Mtk(self.num_control_points - 1, t, k) for k in range(self.num_control_points)] for t
                                   in ts]
-        return BezierCoeff
+
+    # def get_bezier_coefficient(self):
+    #     Mtk = lambda n, t, k: t ** k * (1 - t) ** (n - k) * n_over_k(n, k)
+    #     BezierCoeff = lambda ts: [[Mtk(self.num_control_points - 1, t, k) for k in range(self.num_control_points)] for t in ts]
+    #     return BezierCoeff
 
     def get_bernstein_matrix(self):
         t = torch.linspace(0, 1, self.num_sample_points)
@@ -199,20 +205,22 @@ def get_valid_points(points):
 
 @torch.no_grad()
 def cubic_bezier_curve_segment(control_points, sample_points):
+    # 原曲线取有效部分，再将有效部分用新的控制点表示
     # Cut a batch of cubic bezier curves to its in-image segments (assume at least 2 valid sample points per curve).
     # Based on De Casteljau's algorithm, formula for cubic bezier curve is derived by:
     # https://stackoverflow.com/a/11704152/15449902
-    # 批次为 B
-    # control_points: B x 4 x 2
+    # B 为总车道数
+    # control_points: B x N x 2
     # 样本点
-    # sample_points: B x N x 2
-    # 返回一个形状为 B x 4 x 2 的张量，代表切割后的贝塞尔曲线的控制点
+    # sample_points: B x 100 x 2
+    # 返回一个形状为 B x N x 2 的张量，代表切割后的贝塞尔曲线的控制点
     if control_points.numel() == 0 or sample_points.numel() == 0:
         return control_points
     B, N = sample_points.shape[:-1]
     # 获取有效的样本点的布尔掩码
     valid_points = get_valid_points(sample_points)  # B x N, bool
     # 生成参数 t，表示每个样本点在曲线上的位置
+    # start - end 平分成 step 个
     t = torch.linspace(0.0, 1.0, steps=N, dtype=sample_points.dtype, device=sample_points.device)
 
     # First & Last valid index (B)

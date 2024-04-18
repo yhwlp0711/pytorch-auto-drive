@@ -3,6 +3,9 @@ data_dir=../dataset/TUSimple/
 echo experiment name: $1
 echo status: $2
 echo save dir: $3
+#echo experiment name: tusimple_test
+#echo status: test
+#echo save dir: E:\biyesheji\code3\pytorch-auto-drive\checkpoints\resnet18_bezierlanenet_tusimple-aug2
 
 # Perform test/validation with official scripts
 cd tools/tusimple_evaluation

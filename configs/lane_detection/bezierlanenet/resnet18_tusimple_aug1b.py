@@ -13,13 +13,13 @@ with import_from('./'):
 
 train = dict(
     exp_name='resnet18_bezierlanenet_tusimple-aug2',
-    workers=8,
-    batch_size=8,
+    workers=12,
+    batch_size=30,
     checkpoint=None,
     # Device args
     world_size=0,
     dist_url='env://',
-    device='cuda',
+    device='cuda:0',
 
     val_num_steps=0,  # >0 not supported
     save_dir='./checkpoints',
@@ -28,7 +28,7 @@ train = dict(
     input_size=(360, 640),
     original_size=(720, 1280),
     num_classes=None,
-    num_epochs=400,
+    num_epochs=900,
     collate_fn='dict_collate_fn'
 )
 

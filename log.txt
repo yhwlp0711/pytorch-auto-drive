@@ -1,0 +1,7 @@
+resnet18_bezierlanenet_tusimple-aug2: 0.337761780664818
+resnet18_bezierlanenet_tusimple-aug2: 0.337761780664818
+bezier_eff_cbma_flip: 0.24619203810208512
+bezier_eff_cbma_flip: 0.24619203810208512
+bezier_eff_cbma_flip: 0.24619203810208512
+bezier_eff_cbma_flip: 0.24619203810208512
+bezier_eff_cbma_flip: 0.24619203810208512

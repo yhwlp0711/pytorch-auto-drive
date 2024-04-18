@@ -34,7 +34,7 @@ if __name__ == '__main__':
     add_shortcuts(parser)
 
     # Required args
-    parser.add_argument('--config', default="E:/biyesheji/code3/pytorch-auto-drive/configs/lane_detection/bezierlanenet/resnet18_tusimple_aug1b.py", type=str, help='Path to config file')
+    parser.add_argument('--config', default="./configs/lane_detection/bezierlanenet/beziertest.py", type=str, help='Path to config file')
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument('--train', action='store_true')
     group.add_argument('--test', action='store_true')

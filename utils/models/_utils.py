@@ -64,8 +64,11 @@ class IntermediateLayerGetter(nn.ModuleDict):
 
     def forward(self, x):
         out = OrderedDict()
+        print(x.shape)
         for name, module in self.named_children():
             x = module(x)
+            print(name, module)
+            print(x.shape)
             if name in self.return_layers:
                 out_name = self.return_layers[name]
                 out[out_name] = x

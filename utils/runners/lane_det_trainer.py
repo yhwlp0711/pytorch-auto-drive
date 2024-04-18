@@ -42,6 +42,9 @@ class LaneDetTrainer(BaseTrainer):
             # for batch size
             for i, data in enumerate(self.dataloader, 0):
                 # 这段代码检查配置文件中的'seg'键是否为True，如果是的话，它期望data包含三个部分：inputs、labels和existence
+                # data[0] Tensor: batch size * channels(3) * H(360) * W(640)
+                # data[1] tuple: batch size * { keypoints Tensor: lanenums * cpoints(4) * x_y(2);
+                #                               mask Tensor: H(360) * W(640); sample points Tensor: lanenums * 100 * x_y(2) }
                 if self._cfg['seg']:
                     # inputs: 输入数据，通常是图像或其他类型的特征
                     # labels: 标签，用于监督学习的目标输出
@@ -50,8 +53,9 @@ class LaneDetTrainer(BaseTrainer):
                     inputs, labels, existence = inputs.to(self.device), labels.to(self.device), existence.to(self.device)
                 # 假设data只包含两部分：inputs和labels
                 else:
-                    # inputs: 输入数据，通常是图像或其他类型的特征
-                    # labels: 标签，用于监督学习的目标输出
+                    # inputs: 输入图像，batch size * channels(3) * H(360) * W(640)
+                    # labels: 标签，batch size * { keypoints Tensor: lanenums * cpoints(4) * x_y(2);
+                    #                             mask Tensor: H(360) * W(640); sample points Tensor: lanenums * 100 * x_y(2) }
                     inputs, labels = data
                     inputs = inputs.to(self.device)
                     if self._cfg['collate_fn'] is None:
