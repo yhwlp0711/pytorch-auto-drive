@@ -108,9 +108,9 @@ class BezierLaneNet(BezierBaseNet):
             x = self.dilated_blocks(x)
             # x: B * 256 * 23 * 40
 
-        # with autocast(False):  # TODO: Support fp16 like mmcv
-        #     x = self.simple_flip_2d(x.float())
-        #     # x: B * 256 * 23 * 40
+        with autocast(False):  # TODO: Support fp16 like mmcv
+            x = self.simple_flip_2d(x.float())
+            # x: B * 256 * 23 * 40
         x = self.aggregator(x)[:, :, 0, :]
         # x: B * 256 * 40
 

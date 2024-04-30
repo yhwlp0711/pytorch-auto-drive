@@ -8,3 +8,5 @@ bezier_eff_cbma_flip: 0.24619203810208512
 bezier_eff_cbma_flip: 0.9215315934065905
 bezier_eff_cbma_flip: 0.24619203810208512
 bezier_eff_cbma_flip: 0.24619203810208512
+bezier_eff_cbma_flip: 0.9415770172195357
+bezier_eff_cbma_flip2: 0.3586379060970176
