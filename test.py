@@ -41,7 +41,7 @@ if __name__ == '__main__':
                         help='Ground truth keypoint file suffix')
     parser.add_argument('--mask-suffix', type=str, default='.png',
                         help='Segmentation mask file suffix')
-    parser.add_argument('--style', type=str, default='point',
+    parser.add_argument('--style', type=str, default='line',
                         help='Lane visualization style: point/line/bezier')
     parser.add_argument('--metric', type=str, default='culane',
                         help='Lane eval metric when comparing with GT')

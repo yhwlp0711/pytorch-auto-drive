@@ -83,7 +83,8 @@ def draw_points_as_lines(image, points, colors, thickness=3):
     for j in range(len(points)):
         temp = points[j][(points[j][:, 0] > 0) * (points[j][:, 1] > 0)]
         for k in range(temp.shape[0] - 1):
-            color = colors[j] if isinstance(colors[0], list) else colors
+            color = [0,255,0]
+            # color = colors[j] if isinstance(colors[0], list) else colors
             cv2.line(image,
                      (int(temp[k][0]), int(temp[k][1])),
                      (int(temp[k + 1][0]), int(temp[k + 1][1])),
@@ -139,8 +140,8 @@ def lane_detection_visualize_batched(images, masks=None, keypoints=None,
                 if gt_keypoints is not None:
                     overlay = draw_points_as_lines(overlay, gt_keypoints[i], BGR_BLUE)
                 overlay = draw_points_as_lines(overlay, keypoints[i], keypoint_color)
-                images[i] = (images[i].astype(np.float) * line_trans +
-                             overlay.astype(np.float) * (1 - line_trans)).astype(np.uint8)
+                images[i] = (images[i].astype(float) * line_trans +
+                             overlay.astype(float) * (1 - line_trans)).astype(np.uint8)
                 if style == 'bezier':
                     assert control_points is not None, 'Must provide control points for style bezier!'
                     images[i] = draw_points(images[i], control_points[i], keypoint_color)

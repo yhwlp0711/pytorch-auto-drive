@@ -80,6 +80,13 @@ class BezierLaneNet(BezierBaseNet):
         # self.aggregator = nn.AvgPool2d(kernel_size=((image_height - 1) // global_stride + 1, 1), stride=1, padding=0)
         self.aggregator = nn.AvgPool2d(kernel_size=((image_height - 1) // global_stride, 1), stride=1, padding=0)
         self.regression_head = MODELS.from_dict(head_cfg)  # Name kept for legacy weights
+        # head_cfg=dict(
+        #         name='ConvProjection_1D',
+        #         num_layers=2,
+        #         in_channels=112,
+        #         bias=True,
+        #         k=3
+        #     ),  # Just some transforms of feature, similar to FCOS heads, but shared between cls & reg branches
         self.proj_classification = nn.Conv1d(branch_channels, 1, kernel_size=1, bias=True, padding=0)
         self.proj_regression = nn.Conv1d(branch_channels, num_regression_parameters,
                                          kernel_size=1, bias=True, padding=0)
